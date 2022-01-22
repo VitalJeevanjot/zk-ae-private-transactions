@@ -1,30 +1,98 @@
 include "BLS12_381.aes"
+include "List.aes"
 
 contract GrothVerify =
   type fr = BLS12_381.fr
   type g1 = BLS12_381.g1
   type g2 = BLS12_381.g2
 
+// record g1  = { x : fp, y : fp, z : fp }
+// record g2  = { x : fp2, y : fp2, z : fp2 }
+// record fp2 = { x1 : fp, x2 : fp }`
+
   record proof = { a : g1, b : g2, c : g1 }
   record verify_key = { a : g1, b : g2, c : g2, d : g2, ic : list(g1) }
 
   record state = { vk : verify_key }
 
-  entrypoint init(vk0 : verify_key) = {vk = vk0}  
-  entrypoint get_vk(): verify_key =
-    state.vk
-  entrypoint verify_proof(p : proof, input : list(fr)) =
-    let vk = state.vk
-    let vk_x = calc_vk_x(vk.ic, input)
+  // entrypoint intToFp(inte: int) : BLS12_381.fp =
+  //       BLS12_381.int_to_fp(inte)
 
-    BLS12_381.pairing_check([BLS12_381.g1_neg(p.a), vk.a, vk_x, p.c],
-                            [p.b, vk.b, vk.c, vk.d])
+  entrypoint init(vk0 : list(int)) = 
+    let _vk : verify_key = {
+     a = {
+      x = BLS12_381.int_to_fp(List.get(0,vk0)),
+      y = BLS12_381.int_to_fp(List.get(1,vk0)),
+      z = BLS12_381.int_to_fp(List.get(2,vk0))
+     },
+     b = {
+      x = {
+        x1 = BLS12_381.int_to_fp(List.get(3,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(4,vk0))
+      },
+      y = {
+        x1 = BLS12_381.int_to_fp(List.get(5,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(6,vk0))
+      },
+      z = {
+        x1 = BLS12_381.int_to_fp(List.get(7,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(8,vk0))
+      }
+     },
+     c = {
+      x = {
+        x1 = BLS12_381.int_to_fp(List.get(9,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(10,vk0))
+      },
+      y  = {
+        x1 = BLS12_381.int_to_fp(List.get(11,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(12,vk0))
+      },
+      z  = {
+        x1 = BLS12_381.int_to_fp(List.get(13,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(14,vk0))
+      }
+     },
+     d = {
+      x = {
+        x1 = BLS12_381.int_to_fp(List.get(15,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(16,vk0))
+      },
+      y  = {
+        x1 = BLS12_381.int_to_fp(List.get(17,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(18,vk0))
+      },
+      z  = {
+        x1 = BLS12_381.int_to_fp(List.get(19,vk0)),
+        x2 = BLS12_381.int_to_fp(List.get(20,vk0))
+      }
+     },
+     ic = [{
+        x = BLS12_381.int_to_fp(List.get(21,vk0)),
+        y = BLS12_381.int_to_fp(List.get(22,vk0)),
+        z = BLS12_381.int_to_fp(List.get(23,vk0))
+      }
+      {
+        x = BLS12_381.int_to_fp(List.get(24,vk0)),
+        y = BLS12_381.int_to_fp(List.get(25,vk0)),
+        z = BLS12_381.int_to_fp(List.get(26,vk0))
+       }]
+     }
+    {vk = _vk}  
 
-  function calc_vk_x(ics : list(g1), xs : list(fr)) =
-    switch(ics)
-      (ic :: ics) => calc_vk_x_(ic, ics, xs)
+    
 
-  function calc_vk_x_(vk_x : g1, ics : list(g1), xs : list(fr)) =
-    switch((ics, xs))
-      ([], []) => vk_x
-      (ic :: ics, x :: xs) => calc_vk_x_(BLS12_381.g1_add(vk_x, BLS12_381.g1_mul(x, ic)), ics, xs)
+//   entrypoint verify_proof(p : proof, input : list(fr)) =
+//     let vk = state.vk
+//     let vk_x = calc_vk_x(vk.ic, input)
+
+    // BLS12_381.pairing_check([BLS12_381.g1_neg(p.a), vk.a, vk_x, p.c],
+    //                         [p.b, vk.b, vk.c, vk.d])
+
+//   function calc_vk_x(ics : list(g1), xs : list(fr)) =
+//     switch(ics)
+//       (ic :: ics) => calc_vk_x_(ic, ics, xs)
+//   function calc_vk_x_(vk_x : g1, ics : list(g1), xs : list(fr)) =
+//     switch((ics, xs))
+//       ([], []) => vk_x
+//       (ic :: ics, x :: xs) => calc_vk_x_(BLS12_381.g1_add(vk_x, BLS12_381.g1_mul(x, ic)), ics, xs)

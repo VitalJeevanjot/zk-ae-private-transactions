@@ -6,7 +6,8 @@
     "test": "mocha ./test/**/*.js --timeout 0 --exit"
   },
   "dependencies": {
-    "@aeternity/aepp-sdk": "^10.0.0"
+    "@aeternity/aepp-sdk": "^10.0.0",
+    "snarkjs": "git+https://github.com/tornadocash/snarkjs.git#869181cfaf7526fe8972073d31655493a04326d5"
   },
   "devDependencies": {
     "@aeternity/aeproject": "^4.0.0-alpha.2",
