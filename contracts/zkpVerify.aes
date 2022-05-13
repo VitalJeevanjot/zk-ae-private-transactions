@@ -1,4 +1,3 @@
-
 @compiler >= 6
 
 include "BLS12_381.aes"
@@ -57,23 +56,50 @@ contract VerifyZKP =
          ]
         
         {a =_a, b = _b, c = _c, d = _d, ic = _ic}
-    
-    public entrypoint verify(p : proof, inp: list(BLS12_381.fr)) : bool =
 
+    // <For static Verification>
+    // function return_proof(): proof = 
+    //     {
+    //         a = BLS12_381.mk_g1(3147976723149489859761530872984028462034538679944384837539791309920356665754164302613908745640547280918695328173580,
+    //             930151850943288771744482840546852954611155336919204941204021862254754152518302874102606047734354137440573711399220,
+    //             1),
+
+    //         b = BLS12_381.mk_g2(2904572736743504490815711870221035402191552027212666353577288182480850298300419248232935947470474838494798493916507,
+    //             2065240763541717981078787854968598823208382364114476659485192937340836599945305275680958916731432307027797336139009,
+    //             80398571805065897487660301796264674247777121558657687069183589411378965424205829537530242080722236143422638716816,
+    //             2001894898589695903485343754133403796168357290049128430070740884856148456511639050413934345423589140110795014927333,
+    //             1,
+    //             0),
+    //         c = BLS12_381.mk_g1(3919826893926508557750098617639871699928504637318988284475674255169924457111925861214158159129822181411321007387613,
+    //             3558205460341417241254987523891719000244488429387579696970032523124201417880094438520681105453836336618530498368346,
+    //             1)
+    //         }
+    
+    // function return_input(): list(BLS12_381.fr) = 
+    //     [BLS12_381.int_to_fr(33)]
+
+    // public entrypoint static_verification() : bool =
+    //     verify(return_proof(), return_input())
+    // </For static Verification>
+
+    public entrypoint verify(proof_abc: list(int), inp: list(int)) : bool =
+        let p: proof = make_proof(proof_abc)
+        let inp: list(BLS12_381.fr) = make_input(inp)
         let vk = verifyingKey()
         let vk_x = verify_proof(inp, p, vk)
 
         BLS12_381.pairing_check([BLS12_381.g1_neg(p.a), vk.a, vk_x, p.c],
                             [p.b, vk.b, vk.c, vk.d])
 
+
+
     function verify_proof(inputs: list(BLS12_381.fr), pr: proof, vk: verify_key) : BLS12_381.g1 =
 
         require(List.length(inputs) + 1 == List.length(vk.ic), "verifier-bad-input")
 
         let vk_x = calc_vk_x(vk.ic, inputs)
-        
-        let vk_x_now = BLS12_381.g1_add(vk_x, List.get(0, vk.ic))
-        vk_x_now
+
+        vk_x
 
 
     function calc_vk_x(ics : list(BLS12_381.g1), xs : list(BLS12_381.fr)) : BLS12_381.g1 =
@@ -84,3 +110,24 @@ contract VerifyZKP =
         switch((ics, xs))
             ([], []) => vk_x
             (ic :: ics, x :: xs) => calc_vk_x_(BLS12_381.g1_add(vk_x, BLS12_381.g1_mul(x, ic)), ics, xs)
+
+    function make_proof(abc: list(int)): proof =
+        {
+            a = BLS12_381.mk_g1(List.get(0, abc), 
+                List.get(1, abc), 
+                List.get(2, abc)),
+            b = BLS12_381.mk_g2(List.get(3, abc), 
+                List.get(4, abc), 
+                List.get(5, abc), 
+                List.get(6, abc), 
+                List.get(7, abc), 
+                List.get(8, abc)),
+            c = BLS12_381.mk_g1(List.get(9, abc), 
+                List.get(10, abc), 
+                List.get(11, abc)) 
+         }
+    function make_input(inp: list(int)): list(BLS12_381.fr) =
+        let newList = []
+        switch(inp)
+            [] => newList
+            i :: inp => BLS12_381.int_to_fr(i) :: newList
