@@ -131,3 +131,6 @@ contract VerifyZKP =
         switch(inp)
             [] => newList
             i :: inp => BLS12_381.int_to_fr(i) :: newList
+    
+    entrypoint caller(): address=
+        Call.caller

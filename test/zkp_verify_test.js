@@ -1,20 +1,70 @@
 const { assert } = require('chai');
 const { utils, wallets } = require('@aeternity/aeproject');
 
-const EXAMPLE_CONTRACT_SOURCE = './contracts/zkpVerify.aes';
+const fs = require('fs')
+const { toBN, randomHex } = require('web3-utils')
+const websnarkUtils = require('websnark/src/utils')
+const buildGroth16 = require('websnark/src/groth16')
+const stringifyBigInts = require('websnark/tools/stringifybigint').stringifyBigInts
+const unstringifyBigInts2 = require('snarkjs/src/stringifybigint').unstringifyBigInts
+const snarkjs = require('snarkjs')
+const bigInt = snarkjs.bigInt
+const crypto = require('crypto')
+const circomlib = require('circomlib')
+const MerkleTree = require('fixed-merkle-tree')
 
-describe('ExampleContract', () => {
+
+const ZKP_CONTRACT_SOURCE = './contracts/zkpVerify.aes';
+
+const rbigint = (nbytes) => snarkjs.bigInt.leBuff2int(crypto.randomBytes(nbytes))
+const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
+const toFixedHex = (number, length = 32) =>
+  '0x' +
+  bigInt(number)
+    .toString(16)
+    .padStart(length * 2, '0')
+const getRandomRecipient = () => rbigint(20)
+
+function generateDeposit () {
+  let deposit = {
+    secret: rbigint(31),
+    nullifier: rbigint(31),
+  }
+  const preimage = Buffer.concat([deposit.nullifier.leInt2Buff(31), deposit.secret.leInt2Buff(31)])
+  deposit.commitment = pedersenHash(preimage)
+  return deposit
+}
+
+function snarkVerify (proof) {
+  proof = unstringifyBigInts2(proof)
+  const verification_key = unstringifyBigInts2(require('../build/circuits/withdraw_verification_key.json'))
+  return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
+}
+
+
+describe('ZKPContract', () => {
   let aeSdk;
   let contract;
+  const levels = 16
+  const value = bigInt(1e18)
+  const fee = bigInt(1e16)
+  const refund = bigInt(0)
+  const recipient = getRandomRecipient()
+
+  let tree
+  let groth16
+  let circuit
+  let proving_key
+  // const relayer = accounts[1]
 
   before(async () => {
     aeSdk = await utils.getSdk();
 
     // a filesystem object must be passed to the compiler if the contract uses custom includes
-    const filesystem = utils.getFilesystem(EXAMPLE_CONTRACT_SOURCE);
+    const filesystem = utils.getFilesystem(ZKP_CONTRACT_SOURCE);
 
     // get content of contract
-    const source = utils.getContractContent(EXAMPLE_CONTRACT_SOURCE);
+    const source = utils.getContractContent(ZKP_CONTRACT_SOURCE);
 
     // initialize the contract instance
     contract = await aeSdk.getContractInstance({ source, filesystem });
@@ -22,6 +72,9 @@ describe('ExampleContract', () => {
 
     // create a snapshot of the blockchain state
     await utils.createSnapshot(aeSdk);
+
+    tree = new MerkleTree(levels)
+    groth16 = await buildGroth16()
   });
 
   // after each test roll back to initial state
@@ -94,3 +147,4 @@ describe('ExampleContract', () => {
     assert.equal(get.decodedResult, false)
   });
 });
+
