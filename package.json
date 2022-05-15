@@ -4,7 +4,7 @@
   "snarkjs": "/home/ubuntu/.nvm/versions/node/v14.18.3/bin/snarkjs",
   "description": "This is the default package.json generated for your project",
   "scripts": {
-    "build": "npm run build:circuit && npm run build:circuit:setup",
+    "build": "npm run build:circuit && npm run build:circuit:afterSetup",
     "build:circuit": "npm run build:circuit:compile",
     "build:circuit:compile": "circom circuits/withdraw.circom --prime BLS12381 --r1cs --wasm --sym && $npm_package_snarkjs info -c withdraw.r1cs",
     "build:circuit:preSetup": "$npm_package_snarkjs ptn bls12-381 16 pot16_0000.ptau -v && $npm_package_snarkjs ptc pot16_0000.ptau pot16_0001.ptau --name=\"Jeevanjot Singh Vital\" -v",
