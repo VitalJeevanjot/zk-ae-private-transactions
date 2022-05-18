@@ -1,16 +1,15 @@
 {
   "name": "aeproject-project",
   "version": "1.0.0",
-  "snarkjs": "/home/ubuntu/.nvm/versions/node/v14.18.3/bin/snarkjs",
   "description": "This is the default package.json generated for your project",
   "scripts": {
     "build": "npm run build:circuit && npm run build:circuit:afterSetup",
     "build:circuit": "npm run build:circuit:compile",
-    "build:circuit:compile": "circom circuits/withdraw.circom --prime BLS12381 --r1cs --wasm --sym && $npm_package_snarkjs info -c withdraw.r1cs",
-    "build:circuit:preSetup": "$npm_package_snarkjs ptn bls12-381 16 pot16_0000.ptau -v && $npm_package_snarkjs ptc pot16_0000.ptau pot16_0001.ptau --name=\"Jeevanjot Singh Vital\" -v",
-    "build:circuit:setup": "npm run build:circuit:preSetup && $npm_package_snarkjs pt2 pot16_0001.ptau pot16_final.ptau -v && $npm_package_snarkjs g16s withdraw.r1cs pot16_final.ptau withdraw_0000.zkey",
-    "build:circuit:afterSetup": "npm run build:circuit:setup && $npm_package_snarkjs zkc withdraw_0000.zkey withdraw_0001.zkey --name=\"Jeevanjot Singh Vital\" -v && npm run build:circuit:export_key",
-    "build:circuit:export_key": "$npm_package_snarkjs zkev withdraw_0001.zkey withdraw_0001_verification_key.zkey.json && npm run build:contract",
+    "build:circuit:compile": "circom circuits/withdraw.circom --prime BLS12381 --r1cs --wasm --sym && npx snarkjs info -c withdraw.r1cs",
+    "build:circuit:preSetup": "npx snarkjs ptn bls12-381 16 pot16_0000.ptau -v && npx snarkjs ptc pot16_0000.ptau pot16_0001.ptau --name=\"Jeevanjot Singh Vital\" -v",
+    "build:circuit:setup": "npm run build:circuit:preSetup && npx snarkjs pt2 pot16_0001.ptau pot16_final.ptau -v && npx snarkjs g16s withdraw.r1cs pot16_final.ptau withdraw_0000.zkey",
+    "build:circuit:afterSetup": "npm run build:circuit:setup && npx snarkjs zkc withdraw_0000.zkey withdraw_0001.zkey --name=\"Jeevanjot Singh Vital\" -v && npm run build:circuit:export_key",
+    "build:circuit:export_key": "npx snarkjs zkev withdraw_0001.zkey withdraw_0001_verification_key.zkey.json && npm run build:contract",
     "build:contract": "cd scripts && node createContract.js",
     "test": "mocha ./test/**/*.js --timeout 0 --exit"
   },
@@ -21,6 +20,7 @@
     "fixed-merkle-tree": "^0.6.0",
     "web3": "^1.3.4",
     "web3-utils": "^1.3.4",
+    "snarkjs": "^0.4.17",
     "websnark": "git+https://github.com/tornadocash/websnark.git#4c0af6a8b65aabea3c09f377f63c44e7a58afa6d"
   },
   "devDependencies": {

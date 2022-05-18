@@ -14,7 +14,7 @@ const circomlib = require('circomlib')
 const MerkleTree = require('fixed-merkle-tree')
 
 
-const ZKP_CONTRACT_SOURCE = './contracts/zkpVerify.aes';
+const ZKP_CONTRACT_SOURCE = './contracts/zkpVerify_static_example.aes';
 
 const rbigint = (nbytes) => snarkjs.bigInt.leBuff2int(crypto.randomBytes(nbytes))
 const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
@@ -37,7 +37,7 @@ function generateDeposit () {
 
 function snarkVerify (proof) {
   proof = unstringifyBigInts2(proof)
-  const verification_key = unstringifyBigInts2(require('../build/circuits/withdraw_verification_key.json'))
+  const verification_key = unstringifyBigInts2(require('../withdraw_0001_verification_key.zkey.json'))
   return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
 }
 
