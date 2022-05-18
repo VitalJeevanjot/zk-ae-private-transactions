@@ -92,8 +92,6 @@ contract VerifyZKP =
         BLS12_381.pairing_check([BLS12_381.g1_neg(p.a), vk.a, vk_x, p.c],
                             [p.b, vk.b, vk.c, vk.d])
 
-
-
     function verify_proof(inputs: list(BLS12_381.fr), pr: proof, vk: verify_key) : BLS12_381.g1 =
 
         require(List.length(inputs) + 1 == List.length(vk.ic), "verifier-bad-input")
@@ -101,7 +99,6 @@ contract VerifyZKP =
         let vk_x = calc_vk_x(vk.ic, inputs)
 
         vk_x
-
 
     function calc_vk_x(ics : list(BLS12_381.g1), xs : list(BLS12_381.fr)) : BLS12_381.g1 =
         switch(ics)
@@ -127,7 +124,7 @@ contract VerifyZKP =
                 List.get(10, abc),
                 List.get(11, abc))
          }
-         
+
     function make_input(inp: list(int)): list(BLS12_381.fr) =
         let newList = []
         switch(inp)

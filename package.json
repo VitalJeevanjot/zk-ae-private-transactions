@@ -10,7 +10,8 @@
     "build:circuit:preSetup": "$npm_package_snarkjs ptn bls12-381 16 pot16_0000.ptau -v && $npm_package_snarkjs ptc pot16_0000.ptau pot16_0001.ptau --name=\"Jeevanjot Singh Vital\" -v",
     "build:circuit:setup": "npm run build:circuit:preSetup && $npm_package_snarkjs pt2 pot16_0001.ptau pot16_final.ptau -v && $npm_package_snarkjs g16s withdraw.r1cs pot16_final.ptau withdraw_0000.zkey",
     "build:circuit:afterSetup": "npm run build:circuit:setup && $npm_package_snarkjs zkc withdraw_0000.zkey withdraw_0001.zkey --name=\"Jeevanjot Singh Vital\" -v && npm run build:circuit:export_key",
-    "build:circuit:export_key": "$npm_package_snarkjs zkev withdraw_0001.zkey withdraw_0001_verification_key.zkey.json",
+    "build:circuit:export_key": "$npm_package_snarkjs zkev withdraw_0001.zkey withdraw_0001_verification_key.zkey.json && npm run build:contract",
+    "build:contract": "cd scripts && node createContract.js",
     "test": "mocha ./test/**/*.js --timeout 0 --exit"
   },
   "dependencies": {
