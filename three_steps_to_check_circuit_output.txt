@@ -1,0 +1,3 @@
+circom mycircuit.circom --prime BLS12381 --r1cs --wasm --sym
+snarkjs wc mycircuit.wasm input.json witness.wtns
+snarkjs wej witness.wtns
