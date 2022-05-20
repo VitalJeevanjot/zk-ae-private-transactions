@@ -228,38 +228,47 @@ contract MIMCSponge =
     function getResults(i: int, c: int, k: int, nRounds: int, t: int, t2: list(int), t4: list(int), xL: list(int), xR: list(int), xL_out: int, xR_out: int, aux: int, xL_in: int, xR_in: int, c_partial: list(int)): list(int) =
         switch(i)
             nRounds => 
-                let xL_out = List.get(i-1, xR) + List.get(i, t4) * t
-                let xR_out = List.get(i-1, xL)
+                let xL_out: int = List.get(i-1, xR) + List.get(i, t4) * t
+                let xR_out: int = List.get(i-1, xL)
                 [xL_out, xR_out]
             i => 
-                let _c = 
+                let _c: int = 
                     if((i == 0) || (i == nRounds - 1)) 
                         0 
                     else 
                         List.get(i - 1, c_partial)
-                let _t = 
+                let _t: int = 
                     if(i==0) 
                         k + xL_in
                     else
                         k + List.get(i-1, xL) + _c
                 
-                let _t2 = List.insert_at(i, _t*_t, t2)
-                let _t4 = List.insert_at(i,List.get(i, t2) * List.get(i, t2), t4)
+                let _t2: list(int) = List.insert_at(i, _t*_t, t2)
+                let _t4: list(int) = List.insert_at(i,List.get(i, t2) * List.get(i, t2), t4)
 
-                let _aux = 
+                let _aux: int = 
                     if(i < nRounds-1)
                         if(i == 0)
                             xR_in
                         else
                             List.get(i-1, xR)
+                    else
+                        0
 
-                let _xL = if(i < nRounds-1) List.insert_at(i, _aux + List.get(i, _t4) * t )
-                let _xR = 
+                let _xL: list(int) = 
+                    if(i < nRounds-1) 
+                        List.insert_at(i, _aux + List.get(i, _t4) * t, xL)
+                    else
+                        xL
+
+                let _xR: list(int) = 
                     if(i < nRounds-1)
                         if(i == 0)
-                            List.insert_at(i, xL_in)
+                            List.insert_at(i, xL_in, xR)
                         else
-                            List.insert_at(List.get(i-1, _xL))
+                            List.insert_at(i, List.get(i-1, _xL), xR)
+                    else
+                        xR
 
                 getResults(i+1, _c, k, nRounds, _t, _t2, _t4, _xL, _xR, 0, 0, _aux, xL_in, xR_in, c_partial)
             
