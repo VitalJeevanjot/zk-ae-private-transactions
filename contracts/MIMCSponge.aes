@@ -18,14 +18,18 @@ contract MIMCSponge =
         c_partial: list(int)
      }
 
-    entrypoint mimcSponge(ins: list(int), outs: list(int), k: int, nInputs: int, nRounds: int, nOutputs: int): list(int) =
-        require(List.length(ins) == nInputs && List.length(outs) == nOutputs, "Please enter correct number of ins & outs")
+    entrypoint hasher(left: int, right: int): list(int) =
+        let ins: list(int) = List.insert_at(0, left, [])
+        mimcSponge(List.insert_at(1, left, ins), 0, 2, 220, 1)
+
+    function mimcSponge(ins: list(int), k: int, nInputs: int, nRounds: int, nOutputs: int): list(int) =
+        require(List.length(ins) == nInputs, "Please enter correct number of ins")
         let _S = loop_1(0, nInputs-1, nRounds, k, [], ins)
-        let _outs: list(int) = List.insert_at(0, List.get(nInputs-1, _S).xL_out, outs)
+        let _outs: list(int) = List.insert_at(0, List.get(nInputs-1, _S).xL_out, [])
         let outs: list(int) = loop_2(0, nRounds, nInputs, nOutputs-2, k, _S, _outs)
         outs
 
-    entrypoint loop_1(i: int, nInputs: int, nRounds: int, k: int, s: list(feistel), ins: list(int)): list(feistel) =
+    function loop_1(i: int, nInputs: int, nRounds: int, k: int, s: list(feistel), ins: list(int)): list(feistel) =
         switch(i)
             nInputs => s
             i =>
@@ -38,7 +42,7 @@ contract MIMCSponge =
                 loop_1(i+1, nInputs, nRounds, k, _S, ins)
                 
     
-    entrypoint loop_2(i: int, nRounds: int, nInputs: int, nOutputs: int, k: int, s: list(feistel), outs: list(int)) : list(int) =
+    function loop_2(i: int, nRounds: int, nInputs: int, nOutputs: int, k: int, s: list(feistel), outs: list(int)) : list(int) =
         switch(i)
             nOutputs => outs
             i =>
@@ -47,10 +51,7 @@ contract MIMCSponge =
                 loop_2(i+1, nRounds, nInputs, nOutputs, k, _S, _outs)
 
 
-
-
-
-    entrypoint mimcFeistel(nRounds: int, xL_in: int, xR_in: int, k: int): feistel =
+    function mimcFeistel(nRounds: int, xL_in: int, xR_in: int, k: int): feistel =
       let c_partial: list(int) = [
         7120861356467848435263064379192047478074060781135320967663101236819528304084,
         5024705281721889198577876690145313457398658950011302225525409148828000436681,
