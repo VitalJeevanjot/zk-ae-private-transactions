@@ -20,7 +20,7 @@ contract MIMCSponge =
 
     entrypoint hasher(left: int, right: int): list(int) =
         let ins: list(int) = List.insert_at(0, left, [])
-        mimcSponge(List.insert_at(1, left, ins), 0, 2, 220, 1)
+        mimcSponge(List.insert_at(1, right, ins), 0, 2, 220, 1)
 
     function mimcSponge(ins: list(int), k: int, nInputs: int, nRounds: int, nOutputs: int): list(int) =
         require(List.length(ins) == nInputs, "Please enter correct number of ins")
