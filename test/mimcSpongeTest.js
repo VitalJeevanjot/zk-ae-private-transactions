@@ -37,10 +37,12 @@ describe('mimcSpongeContract', () => {
   });
 
   it('mimcSponge test', async () => {
-    for (let index = 4; index < 10; index++) {
-      const get = await contract.methods.mimcFeistel(index, 1, 0, 0, { gas: 10000000, gasPrice: 20000000000 });
-      console.log(get.decodedResult.i)
-    }
+    // const get = await contract.methods.t5_now({ gas: 5000000, gasPrice: 20000000000 });
+    const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
+    console.log(get.decodedResult)
+    // for (let index = 3; index < 5; index++) {
+
+    // }
     // assert.equal(get.decodedResult, true)
   });
 

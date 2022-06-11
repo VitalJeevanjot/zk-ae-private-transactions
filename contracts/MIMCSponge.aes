@@ -1,59 +1,60 @@
 include "List.aes"
 
 contract MIMCSponge =
-    record feistel = {
-        i: int,
-        c: int, 
-        k: int, 
-        nRounds: int, 
-        t: int, 
-        t2: list(int), 
-        t4: list(int), 
-        xL: list(int), 
-        xR: list(int), 
-        xL_out: int, 
-        xR_out: int, 
-        aux: int, 
-        xL_in: int, 
-        xR_in: int, 
-        c_partial: list(int)
-     }
+    // record feistel = {
+    //     i: int,
+    //     c: int, 
+    //     k: int, 
+    //     nRounds: int, 
+    //     t: int, 
+    //     t2: list(int), 
+    //     t4: list(int), 
+    //     xL: list(int), 
+    //     xR: list(int), 
+    //     xL_out: int, 
+    //     xR_out: int, 
+    //     aux: int, 
+    //     xL_in: int, 
+    //     xR_in: int, 
+    //     c_partial: list(int)
+    //  }
 
-    entrypoint hasher(left: int, right: int): list(int) =
-        let ins: list(int) = List.insert_at(0, left, [])
-        mimcSponge(List.insert_at(1, right, ins), 0, 2, 220, 1)
+    // entrypoint hasher(left: int, right: int): list(int) =
+    //     let ins: list(int) = List.insert_at(0, left, [])
+    //     mimcSponge(List.insert_at(1, right, ins), 0, 2, 220, 1)
 
-    function mimcSponge(ins: list(int), k: int, nInputs: int, nRounds: int, nOutputs: int): list(int) =
-        require(List.length(ins) == nInputs, "Please enter correct number of ins")
-        let _S = loop_1(0, nInputs-1, nRounds, k, [], ins)
-        let _outs: list(int) = List.insert_at(0, List.get(nInputs-1, _S).xL_out, [])
-        let outs: list(int) = loop_2(0, nRounds, nInputs, nOutputs-2, k, _S, _outs)
-        outs
+    // function mimcSponge(ins: list(int), k: int, nInputs: int, nRounds: int, nOutputs: int): list(int) =
+    //     require(List.length(ins) == nInputs, "Please enter correct number of ins")
+    //     let _S = loop_1(0, nInputs-1, nRounds, k, [], ins)
+    //     let _outs: list(int) = List.insert_at(0, List.get(nInputs-1, _S).xL_out, [])
+    //     let outs: list(int) = loop_2(0, nRounds, nInputs, nOutputs-2, k, _S, _outs)
+    //     outs
 
-    function loop_1(i: int, nInputs: int, nRounds: int, k: int, s: list(feistel), ins: list(int)): list(feistel) =
-        switch(i)
-            nInputs => s
-            i =>
-                let _S: list(feistel) =
-                    if(i == 0)
-                        List.insert_at(i, mimcFeistel(nRounds, List.get(0, ins), 0, k), s)
-                    else
-                        List.insert_at(i, mimcFeistel(nRounds, (List.get(i-1, s).xL_out + List.get(i, ins)), List.get(i-1, s).xR_out, k), s)
+    // function loop_1(i: int, nInputs: int, nRounds: int, k: int, s: list(feistel), ins: list(int)): list(feistel) =
+    //     switch(i)
+    //         nInputs => s
+    //         i =>
+    //             let _S: list(feistel) =
+    //                 if(i == 0)
+    //                     List.insert_at(i, mimcFeistel(nRounds, List.get(0, ins), 0, k), s)
+    //                 else
+    //                     List.insert_at(i, mimcFeistel(nRounds, (List.get(i-1, s).xL_out + List.get(i, ins)), List.get(i-1, s).xR_out, k), s)
                 
-                loop_1(i+1, nInputs, nRounds, k, _S, ins)
+    //             loop_1(i+1, nInputs, nRounds, k, _S, ins)
                 
     
-    function loop_2(i: int, nRounds: int, nInputs: int, nOutputs: int, k: int, s: list(feistel), outs: list(int)) : list(int) =
-        switch(i)
-            nOutputs => outs
-            i =>
-                let _S: list(feistel) = List.insert_at(nInputs + 1, mimcFeistel(nRounds, List.get(nInputs+i-1, s).xL_out, List.get(nInputs+i-1, s).xR_out, k), s)
-                let _outs: list(int) = List.insert_at(i+1, List.get(nInputs+i, s).xL_out, outs)
-                loop_2(i+1, nRounds, nInputs, nOutputs, k, _S, _outs)
+    // function loop_2(i: int, nRounds: int, nInputs: int, nOutputs: int, k: int, s: list(feistel), outs: list(int)) : list(int) =
+    //     switch(i)
+    //         nOutputs => outs
+    //         i =>
+    //             let _S: list(feistel) = List.insert_at(nInputs + 1, mimcFeistel(nRounds, List.get(nInputs+i-1, s).xL_out, List.get(nInputs+i-1, s).xR_out, k), s)
+    //             let _outs: list(int) = List.insert_at(i+1, List.get(nInputs+i, s).xL_out, outs)
+    //             loop_2(i+1, nRounds, nInputs, nOutputs, k, _S, _outs)
 
 
-    entrypoint mimcFeistel(nRounds: int, xL_in: int, xR_in: int, k: int): feistel =
-      let c_partial: list(int) = [
+    entrypoint mimcFeistel(xL_in: int, xR_in: int, k: int): list(int) =
+      let iv : list(int) = [
+        0,
         7120861356467848435263064379192047478074060781135320967663101236819528304084,
         5024705281721889198577876690145313457398658950011302225525409148828000436681,
         17980351014018068290387269214713820287804403312720763401943303895585469787384,
@@ -271,71 +272,118 @@ contract MIMCSponge =
         18224457394066545825553407391290108485121649197258948320896164404518684305122,
         274945154732293792784580363548970818611304339008964723447672490026510689427,
         11050822248291117548220126630860474473945266276626263036056336623671308219529,
-        2119542016932434047340813757208803962484943912710204325088879681995922344971]
+        2119542016932434047340813757208803962484943912710204325088879681995922344971,
+        0]
 
-      getResults(0, 0, k, nRounds-1, 0, [], [], [], [], 0, 0, 0, xL_in, xR_in, c_partial)
+      loopResult(iv, [], [], List.length(iv), 0, 0, xL_in, xR_in, k)
+
+    function loopResult(
+        iv: list(int), 
+        xl: list(int),
+        xr: list(int),
+        rounds: int,
+        i: int,
+        j: int,
+        xL_in: int,
+        xR_in: int,
+        k: int): list(int) =
+            switch(iv)
+                [] => [List.get(rounds-1, xl), List.get(rounds-1, xr)]
+                (_iv :: iv) => 
+                    let _t : int = 
+                        if(i == 0)
+                            k + xL_in
+                        else
+                            k + List.get(j, xl) + _iv
+
+                    let r: int = 6554484396890773809930967563523245729705921265872317281365359162392183254199 
+                    let t2_now: int = _t * _t
+                    let t4_now: int = t2_now * t2_now
+                    let t5_now: int = (t4_now * _t) mod r // BLS12_381 scalar field
+                    
+                    let _xl : list(int) =
+                        if(i < rounds - 1)
+                            if(i == 0)
+                                xl ++ [xR_in + t5_now]
+                            else
+                                xl ++ [(List.get(j, xr) + t5_now) mod r]
+                        else
+                            xl ++ [List.get(j, xl)]
+                    
+                    let _xr : list(int) =
+                        if(i < rounds - 1)
+                            if(i == 0)
+                                xr ++ [xL_in]
+                            else
+                                xr ++ [List.get(j, xl)]
+                        else
+                            xr ++ [List.get(j, xr) + t5_now  mod r]                    
+                    let i = i+1
+                    loopResult(iv, _xl, _xr, rounds, i, i-1, xL_in, xR_in, k)
+
+    //   getResults(0, 0, k, nRounds-1, 0, [], [], [], [], 0, 0, 0, xL_in, xR_in, c_partial)
 
     
-    function getResults(i: int, c: int, k: int, nRounds: int, t: int, t2: list(int), t4: list(int), xL: list(int), xR: list(int), xL_out: int, xR_out: int, aux: int, xL_in: int, xR_in: int, c_partial: list(int)): feistel =
-        if(i==nRounds)
-            let xL_out: int = List.get(i-2, xR) + List.get(i-1, t4) * t
-            let xR_out: int = List.get(i-2, xL)
-            {
-                i = i,
-                c = c,
-                k = k,
-                nRounds = nRounds,
-                t = t,
-                t2 = t2,
-                t4 = t4,
-                xL = xL, 
-                xR = xR, 
-                xL_out = xL_out, 
-                xR_out = xR_out, 
-                aux = aux, 
-                xL_in = xL_in, 
-                xR_in = xR_in, 
-                c_partial = c_partial
-                }
+    // function getResults(i: int, c: int, k: int, nRounds: int, t: int, t2: list(int), t4: list(int), xL: list(int), xR: list(int), xL_out: int, xR_out: int, aux: int, xL_in: int, xR_in: int, c_partial: list(int)): feistel =
+    //     if(i==nRounds)
+    //         let xL_out: int = List.get(i-2, xR) + List.get(i-1, t4) * t
+    //         let xR_out: int = List.get(i-2, xL)
+    //         {
+    //             i = i,
+    //             c = c,
+    //             k = k,
+    //             nRounds = nRounds,
+    //             t = t,
+    //             t2 = t2,
+    //             t4 = t4,
+    //             xL = xL, 
+    //             xR = xR, 
+    //             xL_out = xL_out, 
+    //             xR_out = xR_out, 
+    //             aux = aux, 
+    //             xL_in = xL_in, 
+    //             xR_in = xR_in, 
+    //             c_partial = c_partial
+    //             }
 
-        else
-            let _c: int = 
-                if((i == 0) || (i == nRounds)) 
-                    0 
-                else 
-                    List.get(i - 1, c_partial)
-            let _t: int = 
-                if(i==0) 
-                    k + xL_in
-                else
-                    k + List.get(i-1, xL) + _c
+    //     else
+    //         let _c: int = 
+    //             if((i == 0) || (i == nRounds)) 
+    //                 0 
+    //             else 
+    //                 List.get(i - 1, c_partial)
+    //         let _t: int = 
+    //             if(i==0) 
+    //                 k + xL_in
+    //             else
+    //                 k + List.get(i-1, xL) + _c
             
-            let _t2: list(int) = List.insert_at(i, _t*_t, t2)
-            let _t4: list(int) = List.insert_at(i, List.get(i, _t2) * List.get(i, _t2), t4)
+    //         let _t2: list(int) = List.insert_at(i, _t*_t, t2)
+    //         let _t4: list(int) = List.insert_at(i, List.get(i, _t2) * List.get(i, _t2), t4)
 
-            let _aux: int = 
-                if(i < nRounds)
-                    if(i == 0)
-                        xR_in
-                    else
-                        List.get(i-1, xR)
-                else
-                    0
+    //         let _aux: int = 
+    //             if(i < nRounds)
+    //                 if(i == 0)
+    //                     xR_in
+    //                 else
+    //                     List.get(i-1, xR)
+    //             else
+    //                 0
 
-            let _xL: list(int) = 
-                if(i < nRounds) 
-                    List.insert_at(i, _aux + List.get(i, _t4) * t, xL)
-                else
-                    xL
+    //         let _xL: list(int) = 
+    //             if(i < nRounds) 
+    //                 List.insert_at(i, _aux + List.get(i, _t4) * t, xL)
+    //             else
+    //                 xL
 
-            let _xR: list(int) = 
-                if(i < nRounds)
-                    if(i == 0)
-                        List.insert_at(i, xL_in, xR)
-                    else
-                        List.insert_at(i, List.get(i-1, _xL), xR)
-                else
-                    xR
+    //         let _xR: list(int) = 
+    //             if(i < nRounds)
+    //                 if(i == 0)
+    //                     List.insert_at(i, xL_in, xR)
+    //                 else
+    //                     List.insert_at(i, List.get(i-1, _xL), xR)
+    //             else
+    //                 xR
 
-            getResults(i+1, _c, k, nRounds, _t, _t2, _t4, _xL, _xR, 0, 0, _aux, xL_in, xR_in, c_partial)
+    //         getResults(i+1, _c, k, nRounds, _t, _t2, _t4, _xL, _xR, 0, 0, _aux, xL_in, xR_in, c_partial)
             
