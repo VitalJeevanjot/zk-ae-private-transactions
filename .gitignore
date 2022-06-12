@@ -1,0 +1,8 @@
+node_modules
+example.txt
+*.r1cs
+*.sym
+*.wasm
+*.ptau
+*.zkey
+.env
