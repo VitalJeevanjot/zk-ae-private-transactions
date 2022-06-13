@@ -39,11 +39,12 @@ describe('mimcSpongeContract', () => {
   it('mimcSponge test', async () => {
     // const get = await contract.methods.t5_now({ gas: 5000000, gasPrice: 20000000000 });
     // const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
-    const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
+    // const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
+    const get = await contract.methods.hasher([565656512323255, 465468698741321], { gas: 30000000, gasPrice: 2000000000 });
     console.log(get.decodedResult)
-    // for (let index = 3; index < 5; index++) {
+    // inputs:   "left": 565656512323255, "right": 465468698741321
+    // output expected: 38891872867026040328108358595221420665472868284040096954349764956244819173849 (as produced by circom lib)
 
-    // }
     // assert.equal(get.decodedResult, true)
   });
 
