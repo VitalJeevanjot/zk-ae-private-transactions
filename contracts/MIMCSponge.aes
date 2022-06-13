@@ -51,6 +51,11 @@ contract MIMCSponge =
     //             let _outs: list(int) = List.insert_at(i+1, List.get(nInputs+i, s).xL_out, outs)
     //             loop_2(i+1, nRounds, nInputs, nOutputs, k, _S, _outs)
 
+    entrypoint get_feistel_once() : list(int) =
+        mimcFeistel(54, 0, 0)
+
+    entrypoint get_feistel_twice() : list(int) =
+        mimcFeistel(54, 0, 0) ++ mimcFeistel(54, 0, 0)
 
     entrypoint mimcFeistel(xL_in: int, xR_in: int, k: int): list(int) =
       let iv : list(int) = [
@@ -275,52 +280,50 @@ contract MIMCSponge =
         2119542016932434047340813757208803962484943912710204325088879681995922344971,
         0]
 
-      loopResult(iv, [], [], List.length(iv), 0, 0, xL_in, xR_in, k)
+      loopResult(iv, 0, 0, List.length(iv), 0, xL_in, xR_in, k)
 
     function loopResult(
         iv: list(int), 
-        xl: list(int),
-        xr: list(int),
+        xl: int,
+        xr: int,
         rounds: int,
         i: int,
-        j: int,
         xL_in: int,
         xR_in: int,
         k: int): list(int) =
             switch(iv)
-                [] => [List.get(rounds-1, xl), List.get(rounds-1, xr)]
+                [] => [xl, xr]
                 (_iv :: iv) => 
                     let _t : int = 
                         if(i == 0)
                             k + xL_in
                         else
-                            k + List.get(j, xl) + _iv
+                            k + xl + _iv
 
                     let r: int = 6554484396890773809930967563523245729705921265872317281365359162392183254199 
                     let t2_now: int = _t * _t
                     let t4_now: int = t2_now * t2_now
                     let t5_now: int = (t4_now * _t) mod r // BLS12_381 scalar field
                     
-                    let _xl : list(int) =
+                    let _xl : int =
                         if(i < rounds - 1)
                             if(i == 0)
-                                xl ++ [xR_in + t5_now]
+                                (xR_in + t5_now) mod r
                             else
-                                xl ++ [(List.get(j, xr) + t5_now) mod r]
+                                (xr + t5_now) mod r
                         else
-                            xl ++ [List.get(j, xl)]
+                            xl
                     
-                    let _xr : list(int) =
+                    let _xr : int =
                         if(i < rounds - 1)
                             if(i == 0)
-                                xr ++ [xL_in]
+                                xL_in
                             else
-                                xr ++ [List.get(j, xl)]
+                                xl
                         else
-                            xr ++ [List.get(j, xr) + t5_now  mod r]                    
+                            (xr + t5_now) mod r                 
                     let i = i+1
-                    loopResult(iv, _xl, _xr, rounds, i, i-1, xL_in, xR_in, k)
-
+                    loopResult(iv, _xl, _xr, rounds, i, xL_in, xR_in, k)
     //   getResults(0, 0, k, nRounds-1, 0, [], [], [], [], 0, 0, 0, xL_in, xR_in, c_partial)
 
     
@@ -387,3 +390,4 @@ contract MIMCSponge =
 
     //         getResults(i+1, _c, k, nRounds, _t, _t2, _t4, _xL, _xR, 0, 0, _aux, xL_in, xR_in, c_partial)
             
+

@@ -38,7 +38,8 @@ describe('mimcSpongeContract', () => {
 
   it('mimcSponge test', async () => {
     // const get = await contract.methods.t5_now({ gas: 5000000, gasPrice: 20000000000 });
-    const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
+    // const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
+    const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
     console.log(get.decodedResult)
     // for (let index = 3; index < 5; index++) {
 
