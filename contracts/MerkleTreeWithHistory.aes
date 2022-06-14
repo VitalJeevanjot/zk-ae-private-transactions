@@ -1,39 +1,58 @@
 @compiler >= 6
 
-contract interface MIMCSponge =
-  entrypoint hasher: list(int) => int
+include "List.aes"
+
+// contract interface MIMCSponge =
+//   entrypoint hasher: list(int) => list(int)
 
 contract MerkleTreeWithHistory =
 
-  record state = {
-    field_size: bytes(32),
-    hasher: MIMCSponge,
-    levels: int,
-    filled_subtrees: list(bytes(32)),
-    roots: list(bytes(32)),
-    root_history_size: int,
-    current_root_index: int,
-    next_index: int
-   }
+  // record state = {
+  //   field_size: bytes(32),
+  //   // hashing: MIMCSponge,
+  //   levels: int,
+  //   filled_subtrees: list(bytes(32)),
+  //   roots: list(bytes(32)),
+  //   root_history_size: int,
+  //   current_root_index: int,
+  //   next_index: int
+  //  }
   
-  stateful entrypoint init(_levels: int, _hasher: MIMCSponge) =
-    require(_levels > 0 && _levels < 32, "Levels should be in range 0-32 ('Max-Min' is not included)")
-    {
-      field_size = #73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001,
-      levels = _levels,
-      hasher = _hasher,
-      filled_subtrees = zeros(),
-      roots = [#1f3c6fd858e9a7d4b0d1f38e256a09d81d5a5e3c963987e2d4b814cfab7c6ebb],
-      root_history_size = 30,
-      current_root_index = 0,
-      next_index = 0
-     }
+//   stateful entrypoint init(_levels: int, _hasher: MIMCSponge) =
+//     require(_levels > 0 && _levels < 32, "Levels should be in range 0-32 ('Max-Min' is not included)")
+//     {
+//       field_size = #73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001,
+//       levels = _levels,
+//       hashing = _hasher,
+//       filled_subtrees = zeros(),
+//       roots = [#1f3c6fd858e9a7d4b0d1f38e256a09d81d5a5e3c963987e2d4b814cfab7c6ebb],
+//       root_history_size = 30,
+//       current_root_index = 0,
+//       next_index = 0
+//      }
 
-  entrypoint hashLeftRight(_left: bytes(32), _right: bytes(32)) : bytes(32) =
-    require(_left < state.field_size, "_left should be inside the field")
-    require(_right < state.field_size, "_right should be inside the field")
-    let 
-  
+//   entrypoint hashLeftRight(_left: int, _right: int) : int =
+//     // Instead of using Field size in int, using in bytes reduced on conversion here.
+//     require(_left < state.field_size, "_left should be inside the field")
+//     require(_right < state.field_size, "_right should be inside the field")
+//     let outs: list(int) = state.hashing.hasher([Bytes.to_int(_left), 0])
+//     let out_1 : int = (List.get(0, outs) + Bytes.to_int(_right)) mod Bytes.to_int(state.field_size)
+//     List.get(0, state.hashing.hasher([out_1, List.get(1, outs)]))
+
+//   function _insert(leaf: int)
+
+  entrypoint field_size_to_int() : int =
+    Bytes.to_int(#73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001)
+
+  entrypoint zeros_to_find(): list(int) =
+    _zeros_to_int(zeros(), [])
+
+  function _zeros_to_int(zeros: list(bytes(32)), zeros_int: list(int)) : list(int) =
+    switch(zeros)
+        [] => zeros_int
+        (zero :: zeros) =>
+            _zeros_to_int(zeros, zeros_int ++ [Bytes.to_int(zero)])
+
   function zeros() : list(bytes(32)) =
       [
          #2fe54c60d3acabf3343a35b6eba15db4821b340f76e741e2249685ed4899af6c,
