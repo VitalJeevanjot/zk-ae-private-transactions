@@ -1,19 +1,14 @@
 include "List.aes"
 
 contract MIMCSponge =
-    entrypoint hasher(inputs: list(int)) : int =
+    entrypoint hasher(inputs: list(int)) : list(int) =
         require(List.length(inputs) == 2, "only 2 inputs accepted!")
         let s : list(list(int)) = run_input_loop(inputs, 0, 0, [[]])
-        let outs: int = List.get(0, List.get(1, s)) // inputs - 1 = 1
-        outs
+        let outs: list(int) = [List.get(0, List.get(1, s))] // inputs - 1 = 1
+        // Getting 2 outputs for my case
+        outs ++ [List.get(0, mimcFeistel(List.get(0, List.get(1, s)), List.get(1, List.get(1, s)), 0))]
 
-    // entrypoint get_feistel_once() : list(int) =
-    //     mimcFeistel(54, 0, 0)
-
-    // entrypoint get_feistel_twice() : list(int) =
-    //     mimcFeistel(54, 0, 0) ++ mimcFeistel(54, 0, 0)
-
-    entrypoint run_input_loop(ins: list(int), 
+    function run_input_loop(ins: list(int), 
         i: int, 
         j: int, 
         s: list(list(int))): list(list(int)) =
