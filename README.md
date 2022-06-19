@@ -1,2 +1,2 @@
 # zk-ae-private-transactions
-bounty challenge
+bounty challenge, Please file more details here https://github.com/aeternity/bounties.
