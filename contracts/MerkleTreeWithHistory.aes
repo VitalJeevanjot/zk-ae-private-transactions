@@ -1,16 +1,18 @@
 @compiler >= 6
 
+include "List.aes"
+
 contract interface MIMCSponge =
-  entrypoint hasher: list(int) => int
+  entrypoint hasher: list(int) => list(int)
 
 contract MerkleTreeWithHistory =
 
   record state = {
-    field_size: bytes(32),
-    hasher: MIMCSponge,
+    field_size: int,
+    hashing: MIMCSponge,
     levels: int,
-    filled_subtrees: list(bytes(32)),
-    roots: list(bytes(32)),
+    filled_subtrees: list(int),
+    roots: list(int),
     root_history_size: int,
     current_root_index: int,
     next_index: int
@@ -19,53 +21,56 @@ contract MerkleTreeWithHistory =
   stateful entrypoint init(_levels: int, _hasher: MIMCSponge) =
     require(_levels > 0 && _levels < 32, "Levels should be in range 0-32 ('Max-Min' is not included)")
     {
-      field_size = #73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001,
+      field_size = 52435875175126190479447740508185965837690552500527637822603658699938581184513,
       levels = _levels,
-      hasher = _hasher,
+      hashing = _hasher,
       filled_subtrees = zeros(),
-      roots = [#1f3c6fd858e9a7d4b0d1f38e256a09d81d5a5e3c963987e2d4b814cfab7c6ebb],
+      roots = [14128481056524536957498216347562587505734220138697483515041882766627531681467],
       root_history_size = 30,
       current_root_index = 0,
       next_index = 0
      }
 
-  entrypoint hashLeftRight(_left: bytes(32), _right: bytes(32)) : bytes(32) =
+  entrypoint hashLeftRight(_left: int, _right: int) : int =
+    // Instead of using Field size in int, using in bytes reduced on conversion here.
     require(_left < state.field_size, "_left should be inside the field")
     require(_right < state.field_size, "_right should be inside the field")
-    let 
-  
-  function zeros() : list(bytes(32)) =
-      [
-         #2fe54c60d3acabf3343a35b6eba15db4821b340f76e741e2249685ed4899af6c,
-         #256a6135777eee2fd26f54b8b7037a25439d5235caee224154186d2b8a52e31d,
-         #1151949895e82ab19924de92c40a3d6f7bcb60d92b00504b8199613683f0c200,
-         #20121ee811489ff8d61f09fb89e313f14959a0f28bb428a20dba6b0b068b3bdb,
-         #0a89ca6ffa14cc462cfedb842c30ed221a50a3d6bf022a6a57dc82ab24c157c9,
-         #24ca05c2b5cd42e890d6be94c68d0689f4f21c9cec9c0f13fe41d566dfb54959,
-         #1ccb97c932565a92c60156bdba2d08f3bf1377464e025cee765679e604a7315c,
-         #19156fbd7d1a8bf5cba8909367de1b624534ebab4f0f79e003bccdd1b182bdb4,
-         #261af8c1f0912e465744641409f622d466c3920ac6e5ff37e36604cb11dfff80,
-         #0058459724ff6ca5a1652fcbc3e82b93895cf08e975b19beab3f54c217d1c007,
-         #1f04ef20dee48d39984d8eabe768a70eafa6310ad20849d4573c3c40c2ad1e30,
-         #1bea3dec5dab51567ce7e200a30f7ba6d4276aeaa53e2686f962a46c66d511e5,
-         #0ee0f941e2da4b9e31c3ca97a40d8fa9ce68d97c084177071b3cb46cd3372f0f,
-         #1ca9503e8935884501bbaf20be14eb4c46b89772c97b96e3b2ebf3a36a948bbd,
-         #133a80e30697cd55d8f7d4b0965b7be24057ba5dc3da898ee2187232446cb108,
-         #13e6d8fc88839ed76e182c2a779af5b2c0da9dd18c90427a644f7e148a6253b6,
-         #1eb16b057a477f4bc8f572ea6bee39561098f78f15bfb3699dcbb7bd8db61854,
-         #0da2cb16a1ceaabf1c16b838f7a9e3f2a3a3088d9e0a6debaa748114620696ea,
-         #24a3b3d822420b14b5d8cb6c28a574f01e98ea9e940551d2ebd75cee12649f9d,
-         #198622acbd783d1b0d9064105b1fc8e4d8889de95c4c519b3f635809fe6afc05,
-         #29d7ed391256ccc3ea596c86e933b89ff339d25ea8ddced975ae2fe30b5296d4,
-         #19be59f2f0413ce78c0c3703a3a5451b1d7f39629fa33abd11548a76065b2967,
-         #1ff3f61797e538b70e619310d33f2a063e7eb59104e112e95738da1254dc3453,
-         #10c16ae9959cf8358980d9dd9616e48228737310a10e2b6b731c1a548f036c48,
-         #0ba433a63174a90ac20992e75e3095496812b652685b5e1a2eae0b1bf4e8fcd1,
-         #019ddb9df2bc98d987d0dfeca9d2b643deafab8f7036562e627c3667266a044c,
-         #2d3c88b23175c5a5565db928414c66d1912b11acf974b2e644caaac04739ce99,
-         #2eab55f6ae4e66e32c5189eed5c470840863445760f5ed7e7b69b2a62600f354,
-         #002df37a2642621802383cf952bf4dd1f32e05433beeb1fd41031fb7eace979d,
-         #104aeb41435db66c3e62feccc1d6f5d98d0a0ed75d1374db457cf462e3a1f427,
-         #1f3c6fd858e9a7d4b0d1f38e256a09d81d5a5e3c963987e2d4b814cfab7c6ebb,
-         #2c7a07d20dff79d01fecedc1134284a8d08436606c93693b67e333f671bf69cc
-       ]
+    let outs: list(int) = state.hashing.hasher([_left, 0])
+    let out_1 : int = (List.get(0, outs) + _right) mod state.field_size
+    List.get(0, state.hashing.hasher([out_1, List.get(1, outs)]))
+
+  stateful entrypoint insert(leaf: int) : int=
+    let current_index : int = state.next_index
+    require(current_index != (2 ^ state.levels), "Merkle tree is full, No more leaves can be added")
+    let current_level_hash : int = _insert_loop(List.filter((x) => x < state.levels, zeros()), current_index, leaf)
+    let new_root_index = (state.current_root_index + 1) mod state.root_history_size
+    put(state{current_root_index = new_root_index})
+    put(state{roots @ r = r ++ [current_level_hash]})
+    put(state{next_index = current_index + 1})
+    current_index
+    
+  // levels considered 20
+  stateful entrypoint _insert_loop(zeros: list(int), current_index: int, _current_level_hash: int) : int =
+    switch(zeros)
+      [] => 
+        _current_level_hash
+      (zero :: zeros) =>
+        let current_level_hash = 
+          if(current_index mod 2 == 0)
+            let right = zero
+            let new_list = List.replace_at(zero, _current_level_hash, state.filled_subtrees)
+            put(state{filled_subtrees = new_list})
+            hashLeftRight(_current_level_hash, right)
+
+          else
+            let left = List.get(zero, state.filled_subtrees)
+            hashLeftRight(left, _current_level_hash)
+
+        let current_index = current_index / 2
+        _insert_loop(zeros, current_index, current_level_hash)
+
+
+  function zeros() : list(int) =
+    [
+        0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+     ]
