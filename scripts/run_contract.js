@@ -38,10 +38,13 @@ async function init_and_deploy () {
   var deployed_merkle = await merkle_tree_contractInstance.deploy([20, deployed_mimc.address])
   console.log(deployed_merkle.address)
 
-  // var hasher = await mimc_sponge_contractInstance.methods.hasher([565656512323255, 465468698741321], { gas: 30000000, gasPrice: 2000000000 })
+  // var hasher = await mimc_sponge_contractInstance.methods.hasher([565656512323255, 465468698741321], { gas: 300000, gasPrice: 2000000000 })
   // console.log(hasher.decodedResult)
 
-  var insert = await merkle_tree_contractInstance.methods.insert("21663839004416932", { gas: 2000000000, gasPrice: 2000000000 });
+  // var insert = await merkle_tree_contractInstance.methods.hashLeftRight("56565651232325545454665", "4654686987413", { gas: 30000000, gasPrice: 2000000000 });
+  var filled_subtrees = await merkle_tree_contractInstance.methods.get_filled_subtrees();
+  console.log(filled_subtrees)
+  var insert = await merkle_tree_contractInstance.methods.insert("56565651232325545454665", { gas: 3000000, gasPrice: 2000000000 });
   console.log(insert.decodedResult)
 
 

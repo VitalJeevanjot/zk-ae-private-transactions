@@ -50,7 +50,9 @@ describe('merkleTreeHistoryTest', () => {
     // const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
     // const get = await contract.methods.field_size_to_int({ gas: 30000000, gasPrice: 2000000000 });
     // const get = await contract.methods.hashLeftRight("21663839004416932945382355908790599225266501822907911457504978515578255421292", "21663839004416932945382355908790599225266501822907911457504978515578255421292", { gas: 30000000, gasPrice: 2000000000 });
-    const get = await contract.methods.insert("21663839004416932", { gas: 30000000, gasPrice: 200000000000 });
+    var filled_subtrees = await contract.methods._get_filled_subtrees();
+    console.log(filled_subtrees.decodedResult)
+    const get = await contract.methods.insert("21663839004416932", { gas: 3000000, gasPrice: 2000000000 });
     console.log(get.decodedResult)
   });
 
