@@ -1,60 +1,60 @@
-const { assert } = require('chai');
-const { utils, wallets } = require('@aeternity/aeproject');
+// const { assert } = require('chai');
+// const { utils, wallets } = require('@aeternity/aeproject');
 
-const fs = require('fs')
-
-
-const CONTRACT_SOURCE = './contracts/MerkleTreeWithHistory.aes';
-const CONTRACT_SOURCE_HASHER = './contracts/MIMCSponge.aes';
+// const fs = require('fs')
 
 
-
-describe('merkleTreeHistoryTest', () => {
-  let aeSdk;
-  let contract;
-  let contract_hasher;
+// const CONTRACT_SOURCE = './contracts/MerkleTreeWithHistory.aes';
+// const CONTRACT_SOURCE_HASHER = './contracts/MIMCSponge.aes';
 
 
-  before(async () => {
-    aeSdk = await utils.getSdk();
 
-    // a filesystem object must be passed to the compiler if the contract uses custom includes
-    const filesystem = utils.getFilesystem(CONTRACT_SOURCE);
-    const filesystem_hasher = utils.getFilesystem(CONTRACT_SOURCE_HASHER);
+// describe('merkleTreeHistoryTest', () => {
+//   let aeSdk;
+//   let contract;
+//   let contract_hasher;
 
 
-    // get content of contract
-    const source = utils.getContractContent(CONTRACT_SOURCE);
-    const source_hasher = utils.getContractContent(CONTRACT_SOURCE_HASHER);
+//   before(async () => {
+//     aeSdk = await utils.getSdk();
 
-    // initialize the contract instance
-    contract = await aeSdk.getContractInstance({ source, filesystem });
-    contract_hasher = await aeSdk.getContractInstance({ source: source_hasher, filesystem: filesystem_hasher });
+//     // a filesystem object must be passed to the compiler if the contract uses custom includes
+//     const filesystem = utils.getFilesystem(CONTRACT_SOURCE);
+//     const filesystem_hasher = utils.getFilesystem(CONTRACT_SOURCE_HASHER);
 
-    var hasher = await contract_hasher.deploy();
-    await contract.deploy([20, hasher.address]);
 
-    // create a snapshot of the blockchain state
-    await utils.createSnapshot(aeSdk);
+//     // get content of contract
+//     const source = utils.getContractContent(CONTRACT_SOURCE);
+//     const source_hasher = utils.getContractContent(CONTRACT_SOURCE_HASHER);
 
-  });
+//     // initialize the contract instance
+//     contract = await aeSdk.getContractInstance({ source, filesystem });
+//     contract_hasher = await aeSdk.getContractInstance({ source: source_hasher, filesystem: filesystem_hasher });
 
-  // after each test roll back to initial state
-  afterEach(async () => {
-    await utils.rollbackSnapshot(aeSdk);
-  });
+//     var hasher = await contract_hasher.deploy();
+//     await contract.deploy([20, hasher.address]);
 
-  it('haser left right', async () => {
-    // const get = await contract.methods.t5_now({ gas: 5000000, gasPrice: 20000000000 });
-    // const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
-    // const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
-    // const get = await contract.methods.field_size_to_int({ gas: 30000000, gasPrice: 2000000000 });
-    // const get = await contract.methods.hashLeftRight("21663839004416932945382355908790599225266501822907911457504978515578255421292", "21663839004416932945382355908790599225266501822907911457504978515578255421292", { gas: 30000000, gasPrice: 2000000000 });
-    var filled_subtrees = await contract.methods._get_filled_subtrees();
-    console.log(filled_subtrees.decodedResult)
-    const get = await contract.methods.insert("21663839004416932", { gas: 3000000, gasPrice: 2000000000 });
-    console.log(get.decodedResult)
-  });
+//     // create a snapshot of the blockchain state
+//     await utils.createSnapshot(aeSdk);
 
-});
+//   });
+
+//   // after each test roll back to initial state
+//   afterEach(async () => {
+//     await utils.rollbackSnapshot(aeSdk);
+//   });
+
+//   it('haser left right', async () => {
+//     // const get = await contract.methods.t5_now({ gas: 5000000, gasPrice: 20000000000 });
+//     // const get = await contract.methods.mimcFeistel(5, 3, 0, { gas: 30000000, gasPrice: 2000000000 });
+//     // const get = await contract.methods.get_feistel_twice({ gas: 30000000, gasPrice: 2000000000 });
+//     // const get = await contract.methods.field_size_to_int({ gas: 30000000, gasPrice: 2000000000 });
+//     // const get = await contract.methods.hashLeftRight("21663839004416932945382355908790599225266501822907911457504978515578255421292", "21663839004416932945382355908790599225266501822907911457504978515578255421292", { gas: 30000000, gasPrice: 2000000000 });
+//     var filled_subtrees = await contract.methods._get_filled_subtrees();
+//     console.log(filled_subtrees.decodedResult)
+//     const get = await contract.methods.insert("21663839004416932", { gas: 3000000, gasPrice: 2000000000 });
+//     console.log(get.decodedResult)
+//   });
+
+// });
 

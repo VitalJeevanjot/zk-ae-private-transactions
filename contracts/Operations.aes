@@ -1,0 +1,139 @@
+
+@compiler >= 6
+
+include "String.aes"
+
+contract interface VerifyZKP =
+    entrypoint verify: (list(int), list(int)) => bool
+  
+contract interface MIMCSponge =
+  entrypoint hasher: list(int) => list(int)
+
+contract Operations =
+
+    datatype event = Deposit(bytes(32), int, int)
+                    | Withdrawal(address, bytes(32), address, string)
+
+    record state = {
+        field_size: int,
+        hashing: MIMCSponge,
+        levels: int,
+        filled_subtrees: list(int),
+        roots: list(int),
+        root_history_size: int,
+        current_root_index: int,
+        next_index: int,
+        denomination : int, 
+        nullifierHashes : map(bytes(32), bool), 
+        commitments : map(bytes(32), bool), 
+        verifier: VerifyZKP,
+        operator: address
+        }
+
+    function onlyOperator() =
+        require(Call.caller == state.operator, "Only operator can call this")
+
+
+    stateful entrypoint init(_levels: int,  _hasher: MIMCSponge, _denomination: int, _operator: address, _verifier: VerifyZKP) = 
+        { field_size = 52435875175126190479447740508185965837690552500527637822603658699938581184513,
+            levels = _levels,
+            hashing = _hasher,
+            filled_subtrees = zeros(),
+            roots = [20],
+            root_history_size = 100,
+            current_root_index = 0,
+            next_index = 0,
+            denomination = _denomination,
+            nullifierHashes = {},
+            commitments = {},
+            verifier = _verifier,
+            operator = _operator}
+
+    entrypoint get_filled_subtrees(): list(int) =
+      state.filled_subtrees
+
+    entrypoint get_roots(): list(int) =
+      state.roots
+
+    entrypoint get_root_history_size(): int =
+      state.root_history_size
+
+    entrypoint get_current_root_index(): int =
+      state.current_root_index
+
+    entrypoint get_root_by_index(index: int): int =
+      List.get(index, state.roots)
+
+    entrypoint get_next_index(): int =
+      state.next_index
+
+    entrypoint hashLeftRight(_left: int, _right: int) : int =
+      // Instead of using Field size in int, using in bytes reduced on conversion here.
+      require(_left < state.field_size, "_left should be inside the field")
+      require(_right < state.field_size, "_right should be inside the field")
+      let val = (_left + _right) mod state.field_size
+      Bytes.to_int(Crypto.blake2b(val)) mod state.field_size
+      // let outs: list(int) = state.hashing.hasher([_left, 0])
+      // let out_1 : int = (List.get(0, outs) + _right) mod state.field_size
+      // List.get(0, state.hashing.hasher([out_1, List.get(1, outs)]))
+
+    stateful function insert(leaf: int) : int=
+      let current_index : int = state.next_index
+      require(current_index != (2 ^ state.levels), "Merkle tree is full, No more leaves can be added")
+      put(state{next_index = current_index + 1})
+      let current_level_hash : int = _insert_loop(List.filter((x) => x < state.levels, zeros()), current_index, leaf)
+      let new_root_index = (state.current_root_index + 1) mod state.root_history_size
+      put(state{current_root_index = new_root_index})
+      let _roots: list(int) = List.insert_at(state.current_root_index, current_level_hash, state.roots)
+      put(state{roots = _roots})
+      state.next_index - 1
+
+    // levels considered 20
+    stateful function _insert_loop(zeros: list(int), current_index: int, _current_level_hash: int) : int =
+      switch(zeros)
+        [] => 
+          _current_level_hash
+        (zero :: zeros) =>
+          let current_level_hash = 
+            if(current_index mod 2 == 0)
+              let right = zero
+              let new_list = List.replace_at(zero, _current_level_hash, state.filled_subtrees)
+              put(state{filled_subtrees = new_list})
+              hashLeftRight(_current_level_hash, right)
+
+            else
+              let left = List.get(zero, state.filled_subtrees)
+              hashLeftRight(left, _current_level_hash)
+
+          let current_index = current_index / 2
+          _insert_loop(zeros, current_index, current_level_hash)
+
+
+    function zeros() : list(int) =
+      [
+          0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+       ]
+
+    entrypoint get_approved_deposit(): int = 
+      state.denomination
+
+    payable stateful entrypoint deposit(_commitment: bytes(32)) =
+      require(!Map.lookup_default(_commitment, state.commitments, false), "Cannot submit same commitment again!")
+      require(Call.value == state.denomination, "Only approved deposit can be sent to this contract.")
+
+      let inserted_index: int = insert(Bytes.to_int(_commitment))
+      put(state{commitments[_commitment] = true})
+      Chain.event(Deposit(_commitment, inserted_index, Chain.timestamp))
+
+    stateful entrypoint withdraw(proof_abc: list(int), 
+      inp: list(int), 
+      recent_root: int, 
+      nullifier_hash: bytes(32), 
+      recipient: address,
+      relayer: address,
+      fee: int,
+      refund: int) =
+        require(fee =< state.denomination, "Fee exceeds transfer value")
+        require(!Map.lookup_default(nullifier_hash, state.nullifierHashes, false), "This is already spent!")
+
+        require(state.verifier.verify())

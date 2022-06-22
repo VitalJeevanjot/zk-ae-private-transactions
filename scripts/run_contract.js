@@ -43,7 +43,7 @@ async function init_and_deploy () {
 
   // var insert = await merkle_tree_contractInstance.methods.hashLeftRight("56565651232325545454665", "4654686987413", { gas: 30000000, gasPrice: 2000000000 });
   var filled_subtrees = await merkle_tree_contractInstance.methods.get_filled_subtrees();
-  console.log(filled_subtrees)
+  console.log(filled_subtrees.decodedResult)
   var insert = await merkle_tree_contractInstance.methods.insert("56565651232325545454665", { gas: 3000000, gasPrice: 2000000000 });
   console.log(insert.decodedResult)
 
