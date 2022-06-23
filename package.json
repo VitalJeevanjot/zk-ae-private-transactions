@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@aeternity/aepp-sdk": "^11.0.1",
+    "big-integer": "^1.6.51",
     "circomlib": "git+https://github.com/iden3/circomlib.git#update-ffjavascript-to-latest-0.2.37",
     "dotenv": "^8.2.0",
     "ffjavascript": "git+https://github.com/iden3/ffjavascript.git",

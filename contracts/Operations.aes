@@ -5,18 +5,15 @@ include "String.aes"
 
 contract interface VerifyZKP =
     entrypoint verify: (list(int), list(int)) => bool
-  
-contract interface MIMCSponge =
-  entrypoint hasher: list(int) => list(int)
+
 
 contract Operations =
 
-    datatype event = Deposit(bytes(32), int, int)
+    datatype event = Deposit(int, int, int)
                     | Withdrawal(address, bytes(32), address, string)
 
     record state = {
         field_size: int,
-        hashing: MIMCSponge,
         levels: int,
         filled_subtrees: list(int),
         roots: list(int),
@@ -25,7 +22,7 @@ contract Operations =
         next_index: int,
         denomination : int, 
         nullifierHashes : map(bytes(32), bool), 
-        commitments : map(bytes(32), bool), 
+        commitments : map(int, bool), 
         verifier: VerifyZKP,
         operator: address
         }
@@ -34,10 +31,9 @@ contract Operations =
         require(Call.caller == state.operator, "Only operator can call this")
 
 
-    stateful entrypoint init(_levels: int,  _hasher: MIMCSponge, _denomination: int, _operator: address, _verifier: VerifyZKP) = 
+    stateful entrypoint init(_levels: int, _denomination: int, _operator: address, _verifier: VerifyZKP) = 
         { field_size = 52435875175126190479447740508185965837690552500527637822603658699938581184513,
             levels = _levels,
-            hashing = _hasher,
             filled_subtrees = zeros(),
             roots = [20],
             root_history_size = 100,
@@ -68,14 +64,12 @@ contract Operations =
       state.next_index
 
     entrypoint hashLeftRight(_left: int, _right: int) : int =
-      // Instead of using Field size in int, using in bytes reduced on conversion here.
       require(_left < state.field_size, "_left should be inside the field")
       require(_right < state.field_size, "_right should be inside the field")
+      
       let val = (_left + _right) mod state.field_size
       Bytes.to_int(Crypto.blake2b(val)) mod state.field_size
-      // let outs: list(int) = state.hashing.hasher([_left, 0])
-      // let out_1 : int = (List.get(0, outs) + _right) mod state.field_size
-      // List.get(0, state.hashing.hasher([out_1, List.get(1, outs)]))
+
 
     stateful function insert(leaf: int) : int=
       let current_index : int = state.next_index
@@ -117,23 +111,23 @@ contract Operations =
     entrypoint get_approved_deposit(): int = 
       state.denomination
 
-    payable stateful entrypoint deposit(_commitment: bytes(32)) =
-      require(!Map.lookup_default(_commitment, state.commitments, false), "Cannot submit same commitment again!")
+    payable stateful entrypoint deposit(_commitment: int) =
+      require(Map.lookup_default(_commitment, state.commitments, false) == false, "Cannot submit same commitment again!")
       require(Call.value == state.denomination, "Only approved deposit can be sent to this contract.")
 
-      let inserted_index: int = insert(Bytes.to_int(_commitment))
+      let inserted_index: int = insert(_commitment)
       put(state{commitments[_commitment] = true})
       Chain.event(Deposit(_commitment, inserted_index, Chain.timestamp))
 
-    stateful entrypoint withdraw(proof_abc: list(int), 
-      inp: list(int), 
-      recent_root: int, 
-      nullifier_hash: bytes(32), 
-      recipient: address,
-      relayer: address,
-      fee: int,
-      refund: int) =
-        require(fee =< state.denomination, "Fee exceeds transfer value")
-        require(!Map.lookup_default(nullifier_hash, state.nullifierHashes, false), "This is already spent!")
+    // stateful entrypoint withdraw(proof_abc: list(int), 
+    //   inp: list(int), 
+    //   recent_root: int, 
+    //   nullifier_hash: bytes(32), 
+    //   recipient: address,
+    //   relayer: address,
+    //   fee: int,
+    //   refund: int) =
+    //     require(fee =< state.denomination, "Fee exceeds transfer value")
+    //     require(!Map.lookup_default(nullifier_hash, state.nullifierHashes, false), "This is already spent!")
 
-        require(state.verifier.verify())
+    //     require(state.verifier.verify())
