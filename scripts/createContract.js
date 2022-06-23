@@ -1,4 +1,4 @@
-const file = require('../withdraw_0001_verification_key.zkey.json')
+const file = require('../circuits/verification_key.json')
 const fs = require('fs')
 
 

@@ -1,0 +1,11 @@
+snarkjs powersoftau new bls12381 16 pot12_0000.ptau -v
+
+snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v
+
+snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v
+
+snarkjs groth16 setup withdraw.r1cs pot12_final.ptau withdraw2_0000.zkey
+
+snarkjs zkey contribute withdraw2_0000.zkey withdraw2_0001.zkey --name="Jeevanjot Singh Vital" -v
+
+snarkjs zkey export verificationkey withdraw2_0001.zkey verification_key.json

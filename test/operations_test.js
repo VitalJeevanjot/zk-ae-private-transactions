@@ -51,8 +51,8 @@ describe('ZKPContract', () => {
   const levels = 20
   const value = "1000000000000000000"
   const operator = wallets[0].publicKey
-  // const fee = bigInt(1e16)
-  // const refund = bigInt(0)
+  const fee = bigInt(1e16)
+  const refund = bigInt(0)
   const recipient = getRandomRecipient()
 
   let tree
@@ -112,12 +112,62 @@ describe('ZKPContract', () => {
   it('operations: Deposit error if commitment already exists', async () => {
     let _commitment = bigInt(42)
     try {
-      let _deposit = await contract.methods.deposit(_commitment, { amount: value })
-      console.log(_deposit.decodedEvents[0])
+      await contract.methods.deposit(_commitment, { amount: value })
     } catch (e) {
-      // console.log(e.message)
       assert.equal(e.message, `Invocation failed: "Cannot submit same commitment again!"`)
     }
   });
+
+  it('operations: Snarkjs create witness & proof', async () => {
+    let _deposit = generateDeposit()
+    tree.insert(_deposit.commitment)
+    const { pathElements, pathIndices } = tree.path(0)
+    const _input = ffjavascript.utils.stringifyBigInts({
+      root: tree.root(),
+      nullifierHash: pedersenHash(_deposit.nullifier.leInt2Buff(31)),
+      nullifier: _deposit.nullifier,
+      relayer: pedersenHash(operator),
+      recipient,
+      fee,
+      refund,
+      secret: _deposit.secret,
+      pathElements: pathElements,
+      pathIndices: pathIndices,
+    })
+
+
+    // <to be performed on each input>
+    let _wasm_file = 'circuits/withdraw.wasm'
+    let _witness_save_file = 'circuits/witness/withdraw.wtns'
+
+    await snarkjs.wtns.calculate(_input, _wasm_file, _witness_save_file)
+
+    // let _save_file_json = _witness_save_file.replace('.wtns', '.json')
+    // let _withness_in_json = await snarkjs.wtns.exportJson(_witness_save_file)
+    // fs.writeFileSync(_save_file_json, JSON.stringify(ffjavascript.utils.stringifyBigInts(_withness_in_json), null, 1), "utf-8")
+
+    let _zkey_file_name = 'circuits/withdraw2_0001.zkey'
+    let { proof, publicSignals } = await snarkjs.groth16.prove(_zkey_file_name, _witness_save_file)
+
+    let _proof_save_file = 'circuits/witness/proof.json'
+    let _public_signals_save_file = 'circuits/witness/public.json'
+    fs.writeFileSync(_proof_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(proof), null, 1), "utf-8")
+    fs.writeFileSync(_public_signals_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(publicSignals), null, 1), "utf-8")
+    // <to be performed on each input>
+
+    let _verification_key_path = 'circuits/verification_key.json'
+    let _vk = JSON.parse(fs.readFileSync(_verification_key_path, "utf8"))
+    let _pub = JSON.parse(fs.readFileSync(_public_signals_save_file, "utf8"))
+    let _proof = JSON.parse(fs.readFileSync(_proof_save_file, "utf8"))
+
+    let _result = await snarkjs.groth16.verify(_vk, _pub, _proof, null)
+    console.log("Result />")
+    console.log(_result)
+    console.log("</ Result")
+  })
+
+  it('operations: Snarkjs verify proof & detect tampering', async () => {
+
+  })
 });
 
