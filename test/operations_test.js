@@ -49,9 +49,9 @@ describe('ZKPContract', () => {
   let aeSdk;
   let contract;
   const levels = 20
-  const value = "1000000000000000000"
+  const value = bigInt(1e17)
   const operator = wallets[0].publicKey
-  const fee = bigInt(1e16)
+  const fee = bigInt(1e15)
   const refund = bigInt(0)
   const recipient = getRandomRecipient()
 
@@ -149,10 +149,10 @@ describe('ZKPContract', () => {
     let _zkey_file_name = 'circuits/withdraw2_0001.zkey'
     let { proof, publicSignals } = await snarkjs.groth16.prove(_zkey_file_name, _witness_save_file)
 
-    let _proof_save_file = 'circuits/witness/proof.json'
     let _public_signals_save_file = 'circuits/witness/public.json'
-    fs.writeFileSync(_proof_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(proof), null, 1), "utf-8")
+    let _proof_save_file = 'circuits/witness/proof.json'
     fs.writeFileSync(_public_signals_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(publicSignals), null, 1), "utf-8")
+    fs.writeFileSync(_proof_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(proof), null, 1), "utf-8")
     // <to be performed on each input>
 
     let _verification_key_path = 'circuits/verification_key.json'
@@ -160,7 +160,7 @@ describe('ZKPContract', () => {
     let _pub = JSON.parse(fs.readFileSync(_public_signals_save_file, "utf8"))
     let _proof = JSON.parse(fs.readFileSync(_proof_save_file, "utf8"))
 
-    let _result = await snarkjs.groth16.verify(_vk, _pub, _proof, null)
+    let _result = await snarkjs.groth16.verify(_vk, _pub, _proof)
     console.log("Result />")
     console.log(_result)
     console.log("</ Result")
