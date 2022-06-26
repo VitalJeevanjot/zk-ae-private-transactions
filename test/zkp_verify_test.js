@@ -1,62 +1,14 @@
 // const { assert } = require('chai');
 // const { utils, wallets } = require('@aeternity/aeproject');
 
-// const fs = require('fs')
-// const { toBN, randomHex } = require('web3-utils')
-// // const websnarkUtils = require('websnark/src/utils')
-// // const buildGroth16 = require('websnark/src/groth16')
-// // const stringifyBigInts = require('websnark/tools/stringifybigint').stringifyBigInts
-// // const unstringifyBigInts2 = require('snarkjs/src/stringifybigint').unstringifyBigInts
-// const snarkjs = require('snarkjs')
-// const ffjavascript = require('ffjavascript')
-// const bigInt = snarkjs.bigInt
-// const crypto = require('crypto')
-// const circomlib = require('circomlib')
-// const MerkleTree = require('fixed-merkle-tree')
 
+// const ZKP_CONTRACT_SOURCE = './contracts/zkpVerify.aes';
 
-// const ZKP_CONTRACT_SOURCE = './contracts/zkpVerify_static_example.aes';
-
-
-// const rbigint = (nbytes) => ffjavascript.utils.leBuff2int(crypto.randomBytes(nbytes))
-// const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
-// const toFixedHex = (number, length = 32) =>
-//   '0x' +
-//   bigInt(number)
-//     .toString(16)
-//     .padStart(length * 2, '0')
-// const getRandomRecipient = () => rbigint(20)
-
-// function generateDeposit () {
-//   let deposit = {
-//     secret: rbigint(31),
-//     nullifier: rbigint(31),
-//   }
-//   const preimage = Buffer.concat([deposit.nullifier.leInt2Buff(31), deposit.secret.leInt2Buff(31)])
-//   deposit.commitment = pedersenHash(preimage)
-//   return deposit
-// }
-
-// // function snarkVerify (proof) {
-// //   proof = unstringifyBigInts2(proof)
-// //   const verification_key = unstringifyBigInts2(require('../withdraw_0001_verification_key.zkey.json'))
-// //   return snarkjs['groth'].isValid(verification_key, proof, proof.publicSignals)
-// // }
 
 
 // describe('ZKPContract', () => {
 //   let aeSdk;
 //   let contract;
-//   const levels = 16
-//   // const value = bigInt(1e18)
-//   // const fee = bigInt(1e16)
-//   // const refund = bigInt(0)
-//   const recipient = getRandomRecipient()
-
-//   let tree
-//   let groth16
-//   let circuit
-//   let proving_key
 //   // const relayer = accounts[1]
 
 //   before(async () => {
@@ -75,7 +27,6 @@
 //     // create a snapshot of the blockchain state
 //     await utils.createSnapshot(aeSdk);
 
-//     tree = new MerkleTree(levels)
 //     // groth16 = await buildGroth16()
 //   });
 
@@ -86,26 +37,26 @@
 
 //   it('zkpVerify: verify Correctly', async () => {
 //     var proof = [
-//       '687129495719576910169002685923105626540267871273523042644507905506120923346643122760339679987329391178161546405531',
-//       '3579206740354748631027400444531581971524116608700151830633168551400199582741891909023890016338427739234197900083716',
+//       '1242194432916652894778219691172714217558864505175902886926374333582952292544055263615952616680530592807066842190390',
+//       '3724922658685392202698220416537999047373065488876813928960542708813049349754005592540999704191577058172184486170771',
 //       '1',
-//       '3789566769681406739775092696817307072658872952335021310820879472867385382361486984920312182214934819687071290831815',
-//       '2300318871373947482275255010798411918985473685801183093597302322415240840498880835536659985717082239331394929077139',
-//       '1243917777473170621642424377384415586832778635470386700879681374297273485191366189778915953463109149475197913379591',
-//       '3995834636903585040272873434774655399726079088185539224083321499249827745389707926394236954488164586158215806136661',
+//       '700092983554614856363166280723579674544449802967045689202819860286045337584535135559531735889701666456691393517434',
+//       '401201555570107829806495545886439865895241445151767089889252969140202924648417471145979216014051355752072137828932',
+//       '888551860343074174051861711693105338158149028487075935590947047697963558195652186737777807952385178911012796677854',
+//       '3957522053866173379900286476772468303355559345244371121067476522720079661839177232535394100332845149022758382389443',
 //       '1',
 //       '0',
-//       '3016622048094126521894565020911322174783421970860054851583809502968493640039605496079554740933945992173727115953420',
-//       '2222328787712543579301820281637891648969828904244704660907798511640122776389964115544356127548342207100877133479343',
+//       '2062010665619990133222079519234373473528683486570643232816754723267945462992096568696436293022074043848402064983704',
+//       '2276920093515943191628497696110121088788721361470479720018554253759614988087047140810493787738567753325670056991852',
 //       '1'
 //     ]
 
 //     var input = [
-//       "11364823639583714940344188808307259003428790858755661551623613205226888619723",
-//       "7897636304873795179768690397377693481014193396645225164928757161118116337208",
-//       "599111194797725958691026445894736934614504601710",
+//       "2212463235748099387074800394433027559524978677032610846683824329526751378755",
+//       "7610747995585637648721327095708633658995642845345369833758781793335799012742",
+//       "552954675437073487131762417626687232347242141745",
 //       "3797901870361856894033534269537962747863370929539135173032463588218465863784",
-//       "10000000000000000",
+//       "1000000000000000",
 //       "0"
 //     ]
 //     const get = await contract.methods.verify(proof, input, { gas: 100000, gasPrice: 2000000000 });

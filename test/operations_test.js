@@ -13,6 +13,8 @@ const ffjavascript = require('ffjavascript')
 const crypto = require('crypto')
 const circomlib = require('circomlib')
 const MerkleTree = require('fixed-merkle-tree')
+const buildPedersenHash = require("circomlibjs").buildPedersenHash;
+const buildBabyJub = require("circomlibjs").buildBabyjub;
 
 
 const CONTRACT_SOURCE = './contracts/Operations.aes';
@@ -20,24 +22,42 @@ const VERIFIER_CONTRACT_SOURCE = './contracts/zkpVerify.aes';
 
 
 const rbigint = (nbytes) => ffjavascript.utils.leBuff2int(crypto.randomBytes(nbytes))
-const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
+
+// const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0]
 const toFixedHex = (number, length = 32) =>
   '0x' +
-  bigInt(number)
+  BigInt(number)
     .toString(16)
     .padStart(length * 2, '0')
 const getRandomRecipient = () => rbigint(20)
-
-function generateDeposit () {
+// console.log(126810179319684907151315297506427434126249836227001154683610076032717190448n.toString(16))
+// console.log(Buffer.from("47c5a2f894ff0490b6b5cd696eda5b000b4eacd38590d21671e2c53d227530", "hex"))
+async function generateDeposit () {
   let deposit = {
     secret: rbigint(31),
     nullifier: rbigint(31),
   }
-  const preimage = Buffer.concat([deposit.nullifier.leInt2Buff(31), deposit.secret.leInt2Buff(31)])
-  deposit.commitment = pedersenHash(preimage)
+  const preimage = ffjavascript.utils.leBuff2int(Buffer.concat([deposit.nullifier.leInt2Buff(31), deposit.secret.leInt2Buff(31)]))
+  // console.log("preimage >")
+  // console.log(preimage)
+  // console.log("< preimage")
+  deposit.commitment = await pedersenHash(preimage)
   return deposit
 }
 
+async function pedersenHash (data) {
+  // console.log(data.toString())
+  let _input = {
+    in: data.toString()
+  }
+  let _wintess_file = "circuits/pedersenHash/witness.wtns"
+  await snarkjs.wtns.calculate(_input, "circuits/pedersenHash/make_pedersen.wasm", _wintess_file)
+  let _withness_in_json = await snarkjs.wtns.exportJson(_wintess_file)
+  return (_withness_in_json[2])
+}
+
+// console.log(pedersenHash(ffjavascript.utils.leInt2Buff(ffjavascript.utils.unstringifyBigInts("126810179319684907151315297506427434126249836227001154683610076032717190448"))))
+// console.log(ffjavascript.utils.leBuff2int(circomlib.pedersenHash.hash(ffjavascript.utils.leInt2Buff(BigInt(126810179319684907151315297506427434126249836227001154683610076032717190448)))))
 // function snarkVerify (proof) {
 //   proof = unstringifyBigInts2(proof)
 //   const verification_key = unstringifyBigInts2(require('../withdraw_0001_verification_key.zkey.json'))
@@ -49,10 +69,10 @@ describe('ZKPContract', () => {
   let aeSdk;
   let contract;
   const levels = 20
-  const value = bigInt(1e17)
+  const value = BigInt(1e17).toString()
   const operator = wallets[0].publicKey
-  const fee = bigInt(1e15)
-  const refund = bigInt(0)
+  const fee = BigInt(1e15).toString()
+  const refund = BigInt(0).toString()
   const recipient = getRandomRecipient()
 
   let tree
@@ -91,6 +111,44 @@ describe('ZKPContract', () => {
   // });
 
   it('operations: denomination', async () => {
+    console.log(await pedersenHash(126810179319684907151315297506427434126249836227001154683610076032717190448n))
+    // let bj = await buildBabyJub();
+    // let F = bj.F;
+    // let Scalar = ffjavascript.Scalar
+    // console.log("F>")
+    // console.log(F.toObject(F.e(Scalar.sub(Scalar.shl(Scalar.e(1), 253), Scalar.e(1)))))
+    // console.log("<F")
+    // let buuf = Buffer.from("47c5a2f894ff0490b6b5cd696eda5b000b4eacd38590d21671e2c53d227530", "hex")
+    // const b = Buffer.alloc(32);
+    // for (let i = 0; i < buuf.length; i++) b[i] = buuf[i];
+    // b[31] = 0x00;
+    // let ph = await buildPedersenHash();
+    // console.log(bigInt(126810179319684907151315297506427434126249836227001154683610076032717190448))
+    // console.log(pedersenHash(Buffer.from(126810179319684907151315297506427434126249836227001154683610076032717190448n.toString(16), "hex")))
+    // const _deposit = generateDeposit()
+    // let ffbuuf = ffjavascript.utils.leInt2Buff(126810179319684907151315297506427434126249836227001154683610076032717190448n)
+    // console.log(_deposit.nullifier)
+    // console.log(b)
+    // let _buuf = Buffer.from(126810179319684907151315297506427434126249836227001154683610076032717190448n.toString(16), "hex")
+    // console.log(pedersenHash(_buuf))
+    // console.log(pedersenHash(buuf))
+    // console.log(pedersenHash(ffbuuf))
+    // let h = ph.hash(buuf)
+    // let hp = bj.unpackPoint(h)
+    // console.log("hp")
+    // console.log(F.toObject(hp[0]))
+    // // console.log(F.toObject(hp[1]))
+    // let _h = ph.hash(ffbuuf)
+    // let _hp = bj.unpackPoint(_h)
+    // console.log("_hp")
+    // console.log(F.toObject(_hp[0]))
+
+    // let __h = ph.hash(b)
+    // let __hp = bj.unpackPoint(__h)
+    // console.log("__hp")
+    // console.log(F.toObject(__hp[0]))
+    // console.log(F.toObject(hp[1]))
+
     let _denomination = await contract.methods.get_approved_deposit()
     // console.log("Denomination/>")
     // console.log(_denomination.decodedResult)
@@ -99,7 +157,7 @@ describe('ZKPContract', () => {
   });
 
   it('operations: Deposit with dummy commitment', async () => {
-    let _commitment = bigInt(42)
+    let _commitment = BigInt(42).toString()
     let _deposit = await contract.methods.deposit(_commitment, { amount: value })
     // console.log("Deposit/>")
     // console.log(_deposit.decodedEvents[0].args[0])
@@ -110,7 +168,7 @@ describe('ZKPContract', () => {
   });
 
   it('operations: Deposit error if commitment already exists', async () => {
-    let _commitment = bigInt(42)
+    let _commitment = BigInt(42).toString()
     try {
       await contract.methods.deposit(_commitment, { amount: value })
     } catch (e) {
@@ -119,48 +177,54 @@ describe('ZKPContract', () => {
   });
 
   it('operations: Snarkjs create witness & proof', async () => {
-    let _deposit = generateDeposit()
+    const _deposit = await generateDeposit()
     tree.insert(_deposit.commitment)
+
     const { pathElements, pathIndices } = tree.path(0)
-    const _input = ffjavascript.utils.stringifyBigInts({
+
+    // console.log(_deposit.nullifier)
+    const _input = {
       root: tree.root(),
-      nullifierHash: pedersenHash(_deposit.nullifier.leInt2Buff(31)),
+      nullifierHash: await pedersenHash(BigInt(_deposit.nullifier)),
       nullifier: _deposit.nullifier,
-      relayer: pedersenHash(operator),
+      relayer: BigInt("0xab9B39b9e0baDBb3Dbc81a7d7EEF13Bc7D5c846c").toString(),
       recipient,
       fee,
       refund,
       secret: _deposit.secret,
       pathElements: pathElements,
       pathIndices: pathIndices,
-    })
-
+    }
 
     // <to be performed on each input>
     let _wasm_file = 'circuits/withdraw.wasm'
     let _witness_save_file = 'circuits/witness/withdraw.wtns'
 
-    await snarkjs.wtns.calculate(_input, _wasm_file, _witness_save_file)
+    // await snarkjs.wtns.calculate(_input, _wasm_file, _witness_save_file)
 
     // let _save_file_json = _witness_save_file.replace('.wtns', '.json')
     // let _withness_in_json = await snarkjs.wtns.exportJson(_witness_save_file)
     // fs.writeFileSync(_save_file_json, JSON.stringify(ffjavascript.utils.stringifyBigInts(_withness_in_json), null, 1), "utf-8")
 
-    let _zkey_file_name = 'circuits/withdraw2_0001.zkey'
-    let { proof, publicSignals } = await snarkjs.groth16.prove(_zkey_file_name, _witness_save_file)
 
-    let _public_signals_save_file = 'circuits/witness/public.json'
-    let _proof_save_file = 'circuits/witness/proof.json'
-    fs.writeFileSync(_public_signals_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(publicSignals), null, 1), "utf-8")
-    fs.writeFileSync(_proof_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(proof), null, 1), "utf-8")
-    // <to be performed on each input>
+    let _zkey_file_name = 'circuits/withdraw2_0001.zkey'
+    let _prove = await snarkjs.groth16.fullProve(_input, _wasm_file, _zkey_file_name)
+    // console.log(_prove)
+    // let { proof, publicSignals } = await snarkjs.groth16.prove(_zkey_file_name, _witness_save_file)
+
+    // let _public_signals_save_file = 'circuits/witness/public.json'
+    // let _proof_save_file = 'circuits/witness/proof.json'
+    // fs.writeFileSync(_public_signals_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(publicSignals), null, 1), "utf-8")
+    // fs.writeFileSync(_proof_save_file, JSON.stringify(ffjavascript.utils.stringifyBigInts(proof), null, 1), "utf-8")
+    // // <to be performed on each input>
 
     let _verification_key_path = 'circuits/verification_key.json'
     let _vk = JSON.parse(fs.readFileSync(_verification_key_path, "utf8"))
-    let _pub = JSON.parse(fs.readFileSync(_public_signals_save_file, "utf8"))
-    let _proof = JSON.parse(fs.readFileSync(_proof_save_file, "utf8"))
+    // console.log(_vk)
+    // let _pub = JSON.parse(fs.readFileSync(_public_signals_save_file, "utf8"))
+    // let _proof = JSON.parse(fs.readFileSync(_proof_save_file, "utf8"))
 
-    let _result = await snarkjs.groth16.verify(_vk, _pub, _proof)
+    let _result = await snarkjs.groth16.verify(_vk, _prove.publicSignals, _prove.proof)
     console.log("Result />")
     console.log(_result)
     console.log("</ Result")
