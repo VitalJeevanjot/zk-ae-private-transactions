@@ -4,9 +4,9 @@ include "bitify.circom";
 
 template Main() {
     signal input in;
-    signal output onei;
+    signal output catch1;
     signal output out[2];
-    signal output twoi;
+    signal output catch2;
 
     component pedersen = Pedersen(248);
 
@@ -21,10 +21,10 @@ template Main() {
         pedersen.in[i] <== n2b.out[i];
     }
 
+    catch1 <== 40000000
     pedersen.out[0] ==> out[0];
     pedersen.out[1] ==> out[1];
-    100000 ==> onei
-    200000 ==> twoi
+    catch2 <== 50000000
 }
 
 component main = Main();

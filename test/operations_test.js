@@ -37,16 +37,23 @@ async function generateDeposit () {
     secret: rbigint(31),
     nullifier: rbigint(31),
   }
-  const preimage = ffjavascript.utils.leBuff2int(Buffer.concat([deposit.nullifier.leInt2Buff(31), deposit.secret.leInt2Buff(31)]))
-  // console.log("preimage >")
-  // console.log(preimage)
-  // console.log("< preimage")
-  deposit.commitment = await pedersenHash(preimage)
+  deposit.commitment = await get_commitment_hash(deposit.nullifier, deposit.secret)
+
   return deposit
 }
 
+async function get_commitment_hash (nullifier, secret) {
+  let _input = {
+    nullifier: nullifier.toString(),
+    secret: secret.toString()
+  }
+  let _wintess_file = "circuits/pedersenHash/commitment_witness.wtns"
+  await snarkjs.wtns.calculate(_input, "circuits/pedersenHash/get_commitment_hash.wasm", _wintess_file)
+  let _withness_in_json = await snarkjs.wtns.exportJson(_wintess_file)
+  return (_withness_in_json[2])
+}
+
 async function pedersenHash (data) {
-  // console.log(data.toString())
   let _input = {
     in: data.toString()
   }
@@ -111,7 +118,19 @@ describe('ZKPContract', () => {
   // });
 
   it('operations: denomination', async () => {
-    console.log(await pedersenHash(126810179319684907151315297506427434126249836227001154683610076032717190448n))
+    // let deposit = await generateDeposit()
+    // let nullifier = Buffer.from("224090316219006964704684429623707295009158815299416414618621345802405015976")
+    // let secret = Buffer.from("25457547106020319892560499412253457336364309431609500165441822920485098370")
+    // console.log(nullifier)
+    // console.log(secret)
+    // console.log("rr>")
+    // console.log(Array.prototype.slice.call(Buffer.concat([nullifier, secret])).join(''))
+    // console.log("<rr")
+    // // console.log("22409031621900696470468442962370729500915881529941641461862134580240501597625457547106020319892560499412253457336364309431609500165441822920485098370")
+    // console.log("hash>")
+    // console.log(await pedersenHash(Array.prototype.slice.call(Buffer.concat([nullifier, secret])).join('')))
+    // console.log("<hash")
+    // console.log(await pedersenHash(22409031621900696470468442962370729500915881529941641461862134580240501597625457547106020319892560499412253457336364309431609500165441822920485098370n))
     // let bj = await buildBabyJub();
     // let F = bj.F;
     // let Scalar = ffjavascript.Scalar
@@ -178,6 +197,8 @@ describe('ZKPContract', () => {
 
   it('operations: Snarkjs create witness & proof', async () => {
     const _deposit = await generateDeposit()
+    // console.log(_deposit.commitment)
+    // 44586450400433173680761464372173390741855958019792134306206493119522851078525n
     tree.insert(_deposit.commitment)
 
     const { pathElements, pathIndices } = tree.path(0)
@@ -185,7 +206,7 @@ describe('ZKPContract', () => {
     // console.log(_deposit.nullifier)
     const _input = {
       root: tree.root(),
-      nullifierHash: await pedersenHash(BigInt(_deposit.nullifier)),
+      nullifierHash: await pedersenHash(_deposit.nullifier),
       nullifier: _deposit.nullifier,
       relayer: BigInt("0xab9B39b9e0baDBb3Dbc81a7d7EEF13Bc7D5c846c").toString(),
       recipient,
@@ -195,7 +216,7 @@ describe('ZKPContract', () => {
       pathElements: pathElements,
       pathIndices: pathIndices,
     }
-
+    // console.log(JSON.stringify(ffjavascript.utils.stringifyBigInts(_input), null, 1))
     // <to be performed on each input>
     let _wasm_file = 'circuits/withdraw.wasm'
     let _witness_save_file = 'circuits/witness/withdraw.wtns'
