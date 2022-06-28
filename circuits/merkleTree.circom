@@ -1,16 +1,29 @@
-include "../node_modules/circomlib/circuits/mimcsponge.circom";
-
-// Computes MiMC([left, right])
+include "../node_modules/circomlib/circuits/sha256/sha256.circom";
+include "../node_modules/circomlib/circuits/bitify.circom";
+// Computes SHA256([left, right])
 template HashLeftRight() {
     signal input left;
     signal input right;
     signal output hash;
+    var getHash = 0;
+    component num2bits[2];
 
-    component hasher = MiMCSponge(2,220, 1);
-    hasher.ins[0] <== left;
-    hasher.ins[1] <== right;
-    hasher.k <== 0;
-    hash <== hasher.outs[0];
+    num2bits[0] = Num2Bits(512);
+    num2bits[1] = Num2Bits(512);
+
+    num2bits[0].in <== left;
+    num2bits[1].in <== right;
+
+    component hasher = Sha256(1024);
+
+    for (var i = 0; i<512; i ++) {
+        hasher.in[i] <== num2bits[0].out[i];
+        hasher.in[i+512] <== num2bits[1].out[i];
+    }
+    for (var k=0; k<256; k++) {
+        getHash += hasher.out[k];
+    }
+    hash <== getHash
 }
 
 // if s == 0 returns [in[0], in[1]]
