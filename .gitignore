@@ -6,3 +6,5 @@ example.txt
 *.ptau
 *.zkey
 .env
+extract_mimc.js
+mimc_hasher.txt
